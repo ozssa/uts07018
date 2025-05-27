@@ -1,0 +1,126 @@
+/* C:\xampp\htdocs\uts07018\assets\css\style.css */
+body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.main-content {
+    flex: 1;
+    padding-top: 80px;
+}
+
+/* Form Styles */
+.form-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+}
+
+.img-preview {
+    width: 200px;
+    height: 200px;
+    object-fit: cover;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.img-preview.loaded {
+    border-color: #007bff;
+    box-shadow: 0 4px 12px rgba(0,123,255,0.2);
+}
+
+.alert {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1050;
+    min-width: 300px;
+    opacity: 0.96;
+    backdrop-filter: blur(2px);
+    border: none;
+}
+
+/* Card Enhancements */
+.card {
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.card-header {
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+/* Form Validation */
+.is-invalid {
+    border-color: #dc3545;
+    background-image: none;
+    padding-right: calc(1.5em + 0.75rem);
+}
+
+.form-text.text-danger {
+    font-size: 0.875em;
+    margin-top: 0.25rem;
+}
+
+/* Student List Styles */
+.student-thumb {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.student-thumb:hover {
+    transform: scale(1.1);
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+}
+
+.table thead th {
+    font-weight: 600;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.btn-sm {
+    padding: 0.35rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+.modal-content {
+    border-radius: 0.5rem;
+}
+
+#modalImage {
+    max-height: 80vh;
+    object-fit: contain;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .main-content {
+        padding-top: 60px;
+    }
+    
+    .form-container {
+        padding: 1.5rem;
+        margin: 1rem;
+    }
+    
+    .img-preview {
+        width: 150px;
+        height: 150px;
+    }
+}

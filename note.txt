@@ -1,0 +1,3 @@
+Minggu kedua: Situs dinamis
+Minggu ketiga: connect database
+Minggu ke empat: login
