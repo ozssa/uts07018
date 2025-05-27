@@ -1,99 +1,92 @@
-Sistem Informasi Akademik (SIA)
-This is a web-based application for managing academic data, including student records, profile pictures, and their respective details. It provides functionalities like adding, editing, deleting, and searching student data.
+Berikut adalah README yang telah diperbarui dalam bahasa Indonesia yang baik dan benar dengan URL repositori yang Anda berikan:
 
-Table of Contents
-Features
+---
 
-Installation
+# Sistem Informasi Akademik (SIA)
 
-Technologies Used
+Ini adalah aplikasi berbasis web untuk mengelola data akademik, termasuk data mahasiswa, foto profil, dan informasi terkait lainnya. Aplikasi ini menyediakan berbagai fitur seperti penambahan, pengeditan, penghapusan, dan pencarian data mahasiswa.
 
-Directory Structure
+## Daftar Isi
 
-Database
+* [Fitur](#fitur)
+* [Instalasi](#instalasi)
+* [Teknologi yang Digunakan](#teknologi-yang-digunakan)
+* [Struktur Direktori](#struktur-direktori)
+* [Database](#database)
+* [Penggunaan](#penggunaan)
 
-Usage
+## Fitur
 
-Features
-Add and Edit Student Data (NIM, Name, Department)
+* Menambah dan Mengedit Data Mahasiswa (NIM, Nama, Jurusan)
+* Mengunggah Foto Profil Mahasiswa
+* Melihat Daftar Mahasiswa dengan Pratinjau Gambar
+* Pencarian Mahasiswa Secara Langsung (Live Search)
+* Menghapus Data Mahasiswa
+* Login Admin yang Aman
 
-Upload Profile Picture for Students
+## Instalasi
 
-View Student List with Image Preview
+### Prasyarat:
 
-Live Search for Students
+* XAMPP/WAMP atau server lokal dengan dukungan PHP dan MySQL
+* PHP 8.0+
+* MySQL atau MariaDB
 
-Delete Student Records
+### Langkah-langkah:
 
-Secure Admin Login
+1. **Clone Repositori**
+   Clone proyek ini ke mesin lokal Anda atau unduh file ZIP.
 
-Installation
-Prerequisites:
-XAMPP/WAMP or any local server with PHP and MySQL support
+   ```bash
+   git clone https://github.com/ozssa/uts07018.git
+   ```
 
-PHP 8.0+
+2. **Setup Database**
+   Impor file dump SQL `akademik07018.sql` ke dalam database MySQL menggunakan phpMyAdmin atau melalui command line.
 
-MySQL or MariaDB database
+   ```sql
+   CREATE DATABASE akademik07018;
+   ```
 
-Steps:
-Clone the Repository
-Clone the project to your local machine or download the ZIP file.
+   Kemudian, impor file `akademik07018.sql` untuk membuat tabel-tabel dan memasukkan data contoh.
 
-bash
-Copy
-Edit
-git clone https://github.com/yourusername/sistem-informasi-akademik.git
-Setup the Database
-Import the SQL dump file akademik07018.sql into your MySQL database using phpMyAdmin or command-line.
+3. **Konfigurasi Koneksi Database**
+   Buka file `koneksi.php` dan sesuaikan kredensial database Anda:
 
-sql
-Copy
-Edit
-CREATE DATABASE akademik07018;
-Then, import the akademik07018.sql file to create the tables and insert sample data.
+   ```php
+   $host = "localhost";
+   $user = "root";
+   $pass = "";
+   $db = "akademik07018";
 
-Configure Database Connection
-Open the koneksi.php file and set the correct database credentials:
+   $conn = new mysqli($host, $user, $pass, $db);
 
-php
-Copy
-Edit
-$host = "localhost";
-$user = "root";
-$pass = "";
-$db = "akademik07018";
+   if ($conn->connect_error) {
+       die("Koneksi gagal: " . $conn->connect_error);
+   }
+   ```
 
-$conn = new mysqli($host, $user, $pass, $db);
+4. **Jalankan Aplikasi**
+   Jalankan layanan Apache dan MySQL di XAMPP/WAMP, lalu buka folder proyek di browser Anda (misalnya `http://localhost/uts07018`).
 
-if ($conn->connect_error) {
-    die("Koneksi gagal: " . $conn->connect_error);
-}
-Run the Application
-Start your Apache and MySQL services in XAMPP/WAMP, then open the project folder in your browser (e.g., http://localhost/uts07018).
+## Teknologi yang Digunakan
 
-Technologies Used
-Frontend:
+* **Frontend:**
 
-HTML
+  * HTML
+  * CSS (Bootstrap)
+  * JavaScript (AJAX, jQuery)
+* **Backend:**
 
-CSS (Bootstrap)
+  * PHP
+  * MySQL/MariaDB
+* **Database:**
 
-JavaScript (AJAX, jQuery)
+  * MySQL/MariaDB (Skema database: `akademik07018`)
 
-Backend:
+## Struktur Direktori
 
-PHP
-
-MySQL/MariaDB
-
-Database:
-
-MySQL/MariaDB (Database schema: akademik07018)
-
-Directory Structure
-pgsql
-Copy
-Edit
+```
 /uts07018
 │
 ├── assets
@@ -122,44 +115,51 @@ Edit
 │   ├── sv_editFotoMhs.php
 │   └── sv_editMhs.php
 └── koneksi.php
-Database
-Database Name: akademik07018
-Tables:
-mahasiswa: Stores student records (NIM, Name, Department, Profile Picture).
+```
 
-admin: Stores admin credentials (Username, Password).
+## Database
 
-Example Data (for mahasiswa table):
-sql
-Copy
-Edit
+### Nama Database: `akademik07018`
+
+### Tabel:
+
+1. **mahasiswa**: Menyimpan data mahasiswa (NIM, Nama, Jurusan, Foto Profil).
+2. **admin**: Menyimpan kredensial admin (Username, Password).
+
+### Contoh Data (untuk tabel `mahasiswa`):
+
+```sql
 INSERT INTO `mahasiswa` (`id`, `nim`, `nama`, `jurusan`, `filename`, `filepath`, `thumbpath`, `width`, `height`, `uploaded_at`) VALUES
 (23, 'A12.2023.00001', 'Satu', 'Teknik', '1748367590_6835f8e696085.jpg', '../assets/images/uploads/1748367590_6835f8e696085.jpg', '../assets/images/thumbs/thumb_1748367590_6835f8e696085.jpg', 3648, 3648, '2025-05-27 17:39:51'),
 (24, 'A11.2023.00002', 'Dua', 'Kedokteran', '1748367616_6835f90000c56.jpg', '../assets/images/uploads/1748367616_6835f90000c56.jpg', '../assets/images/thumbs/thumb_1748367616_6835f90000c56.jpg', 4706, 4706, '2025-05-27 17:40:18');
-Usage
-Admin Login:
+```
 
-Go to the login page (login.php), and login using the default admin credentials:
+## Penggunaan
 
-Username: admin
+1. **Login Admin:**
 
-Password: admin123 (hashed in the database).
+   * Buka halaman login (`login.php`), dan login menggunakan kredensial admin default:
 
-Add Students:
+     * Username: `admin`
+     * Password: `admin123` (disimpan dalam format hash di database).
 
-After logging in, you can add student records from the addMhs.php page.
+2. **Menambah Mahasiswa:**
 
-Upload a profile picture and enter the student details (NIM, Name, Department).
+   * Setelah login, Anda dapat menambah data mahasiswa melalui halaman `addMhs.php`.
+   * Unggah foto profil dan masukkan informasi mahasiswa (NIM, Nama, Jurusan).
 
-Edit and Delete Students:
+3. **Mengedit dan Menghapus Mahasiswa:**
 
-You can edit or delete students' records from the list on ajaxMahasiswa.php.
+   * Anda dapat mengedit atau menghapus data mahasiswa dari daftar di halaman `ajaxMahasiswa.php`.
 
-Search Students:
+4. **Mencari Mahasiswa:**
 
-Use the search bar to search for students by NIM, Name, or Department.
+   * Gunakan kotak pencarian untuk mencari mahasiswa berdasarkan NIM, Nama, atau Jurusan.
 
-Contributions
-Feel free to fork this project, contribute to its development, or suggest any improvements.
+## Kontribusi
 
-This README serves as a basic guide to using and managing the "Sistem Informasi Akademik" application.
+Silakan fork proyek ini, berkontribusi pada pengembangannya, atau memberikan saran perbaikan.
+
+---
+
+README ini memberikan panduan dasar untuk menggunakan dan mengelola aplikasi "Sistem Informasi Akademik".
