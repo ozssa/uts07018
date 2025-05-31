@@ -1,6 +1,6 @@
 // C:\xampp\htdocs\uts07018\assets\js\script.js
 document.addEventListener('DOMContentLoaded', function() {
-    // Handler untuk halaman form (add/edit)
+    // ====================== HANDLER UNTUK HALAMAN FORM (ADD/EDIT) ======================
     const form = document.getElementById('mahasiswaForm');
     if(form) {
         const nimInput = document.getElementById('nim');
@@ -69,38 +69,103 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Handler untuk halaman pencarian (ajaxMahasiswa)
+    // ====================== HANDLER UNTUK HALAMAN PENCARIAN (ajaxMahasiswa) ======================
     const liveSearch = document.getElementById('liveSearch');
     if(liveSearch) {
-        let searchTimeout;
-        let controller = new AbortController();
+        // Variabel kontrol
+        let isLoading = false;
+        let searchTimer;
+        
+        // Elemen UI
+        const searchDate = document.getElementById('searchDate');
+        const resetDate = document.getElementById('resetDate');
+        const tableBody = document.getElementById('tableBody');
+        const dataCounter = document.getElementById('dataCounter');
 
-        const showLoading = () => {
-            const tbody = document.getElementById('tableBody');
-            tbody.innerHTML = `
+        // Fungsi untuk memuat data mahasiswa
+        const loadMahasiswaData = (keyword = '', date = '') => {
+            if (isLoading) return;
+            
+            isLoading = true;
+            
+            // Tampilkan loading spinner
+            tableBody.innerHTML = `
                 <tr>
-                    <td colspan="6" class="text-center py-4">
-                        <div class="text-primary">
-                            <div class="spinner-border" role="status">
+                    <td colspan="6" class="text-center">
+                        <div class="d-flex justify-content-center align-items-center py-5">
+                            <div class="spinner-border text-primary" role="status">
                                 <span class="visually-hidden">Loading...</span>
                             </div>
-                            <p class="mt-2">Memuat data...</p>
+                            <span class="ms-3">Memuat data...</span>
                         </div>
                     </td>
                 </tr>
             `;
+            
+            dataCounter.textContent = 'Memuat data...';
+            
+            // Kirim request ke server
+            fetch('../pages/search.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `cari=${encodeURIComponent(keyword)}&tanggal=${encodeURIComponent(date)}`
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'error') throw new Error(data.message);
+                renderMahasiswaTable(data);
+                dataCounter.textContent = data.data.length > 0 
+                    ? `Menampilkan ${data.data.length} data` 
+                    : 'Tidak ada data ditemukan';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center text-danger py-4">
+                            <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                            <p>Terjadi kesalahan: ${error.message}</p>
+                            <button class="btn btn-sm btn-outline-primary mt-2" 
+                                onclick="retrySearch()">
+                                <i class="fas fa-sync me-1"></i> Coba Lagi
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                dataCounter.textContent = 'Gagal memuat data';
+            })
+            .finally(() => {
+                isLoading = false;
+            });
         }
 
-        const updateTable = (data) => {
-            const tbody = document.getElementById('tableBody');
-            const counter = document.getElementById('dataCounter');
+        // Fungsi untuk render tabel
+        const renderMahasiswaTable = (data) => {
+            if (!data.data || data.data.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center py-4">
+                            <div class="text-muted">
+                                <i class="fas fa-search-minus fa-2x mb-3"></i>
+                                <p>Data tidak ditemukan</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
             
-            tbody.innerHTML = '';
-            
-            if(data.status === 'success' && data.data.length > 0) {
-                data.data.forEach(row => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
+            let html = '';
+            data.data.forEach(row => {
+                html += `
+                    <tr>
                         <td>
                             <img src="${row.thumbpath}" 
                                 class="student-thumb" 
@@ -129,27 +194,15 @@ document.addEventListener('DOMContentLoaded', function() {
                                 </button>
                             </div>
                         </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-                
-                counter.innerHTML = `Menampilkan ${data.data.length} data`;
-                initComponents();
-            } else {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="6" class="text-center py-4">
-                            <div class="text-muted">
-                                <i class="fas fa-search-minus fa-2x mb-3"></i>
-                                <p>Data tidak ditemukan</p>
-                            </div>
-                        </td>
                     </tr>
                 `;
-                counter.innerHTML = `Menampilkan 0 data`;
-            }
+            });
+            
+            tableBody.innerHTML = html;
+            initComponents();
         }
 
+        // Fungsi untuk inisialisasi komponen
         const initComponents = () => {
             // Preview Gambar
             document.querySelectorAll('.student-thumb').forEach(img => {
@@ -161,14 +214,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Delete Modal
             const deleteModal = document.getElementById('deleteModal');
-            deleteModal.addEventListener('show.bs.modal', event => {
-                const button = event.relatedTarget;
-                const id = button.getAttribute('data-id');
-                const nama = button.getAttribute('data-nama');
-                
-                document.getElementById('deleteNama').textContent = nama;
-                document.getElementById('confirmDelete').href = `hpsMhs.php?kode=${id}`;
-            });
+            if (deleteModal) {
+                deleteModal.addEventListener('show.bs.modal', event => {
+                    const button = event.relatedTarget;
+                    const id = button.getAttribute('data-id');
+                    const nama = button.getAttribute('data-nama');
+                    
+                    document.getElementById('deleteNama').textContent = nama;
+                    document.getElementById('confirmDelete').href = `hpsMhs.php?kode=${id}`;
+                });
+            }
 
             // Tooltip
             const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
@@ -177,74 +232,62 @@ document.addEventListener('DOMContentLoaded', function() {
             );
         }
 
-        const handleSearch = (searchTerm) => {
-            controller.abort();
-            controller = new AbortController();
-
-            const apiUrl = new URL('../pages/search.php', window.location.href);
-            apiUrl.searchParams.append('cari', searchTerm);
-
-            showLoading();
-
-            fetch(apiUrl, { 
-                signal: controller.signal 
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.text().then(text => {
-                        throw new Error(`HTTP error! Status: ${response.status}. Response: ${text}`);
-                    });
-                }
-                return response.json().catch(() => {
-                    throw new Error('Respon server tidak valid');
-                });
-            })
-            .then(data => {
-                if(data.status === 'error') throw new Error(data.message);
-                if(!Array.isArray(data.data)) throw new Error('Format data tidak valid');
-                updateTable(data);
-            })
-            .catch(error => {
-                if(error.name === 'AbortError') return;
-                console.error('Error:', error);
-                showError(error.message);
-                document.getElementById('dataCounter').textContent = 'Gagal memuat data';
-            });
+        // Fungsi untuk debounce pencarian
+        const debounceSearch = (func, delay) => {
+            let timer;
+            return function() {
+                const context = this;
+                const args = arguments;
+                clearTimeout(timer);
+                timer = setTimeout(() => func.apply(context, args), delay);
+            };
         }
 
-        liveSearch.addEventListener('input', function() {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                handleSearch(this.value.trim());
-            }, 300);
-        });
+        // Fungsi retry untuk UI
+        window.retrySearch = () => {
+            const keyword = liveSearch.value.trim();
+            const date = searchDate ? searchDate.value : '';
+            loadMahasiswaData(keyword, date);
+        }
+
+        // Event handler untuk input pencarian
+        const handleSearchInput = debounceSearch(() => {
+            const keyword = liveSearch.value.trim();
+            const date = searchDate ? searchDate.value : '';
+            loadMahasiswaData(keyword, date);
+        }, 300);
+
+        // Event handler untuk tanggal
+        const handleDateChange = () => {
+            const keyword = liveSearch.value.trim();
+            const date = searchDate ? searchDate.value : '';
+            loadMahasiswaData(keyword, date);
+        }
+
+        // Event handler reset tanggal
+        const handleResetDate = () => {
+            if (searchDate) searchDate.value = '';
+            const keyword = liveSearch.value.trim();
+            loadMahasiswaData(keyword, '');
+        }
+
+        // Setup event listeners
+        liveSearch.addEventListener('input', handleSearchInput);
+        
+        if (searchDate) {
+            searchDate.addEventListener('change', handleDateChange);
+        }
+        
+        if (resetDate) {
+            resetDate.addEventListener('click', handleResetDate);
+        }
 
         // Load data awal
-        const loadInitialData = () => {
-            fetch('../pages/search.php?cari=')
-                .then(response => {
-                    if(!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-                    return response.json().catch(() => {
-                        throw new Error('Respon server tidak valid');
-                    });
-                })
-                .then(data => {
-                    if(data.status === 'error') throw new Error(data.message);
-                    if(!Array.isArray(data.data)) throw new Error('Format data tidak valid');
-                    updateTable(data);
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showError(error.message);
-                    document.getElementById('dataCounter').textContent = 'Gagal memuat data awal';
-                });
-        }
-
-        loadInitialData();
+        loadMahasiswaData();
         initComponents();
     }
 
-    // Fungsi global untuk menampilkan error
+    // ====================== FUNGSI GLOBAL ======================
     window.showError = function(message) {
         const alertDiv = document.createElement('div');
         alertDiv.className = 'alert alert-danger mt-3';

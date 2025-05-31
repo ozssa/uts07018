@@ -17,11 +17,19 @@ try {
         throw new Exception("Koneksi database gagal: " . $conn->connect_error);
     }
 
-    // Sanitasi input
+    // Sanitasi input pencarian
     $searchTerm = isset($_GET['cari']) ? trim($_GET['cari']) : '';
     $searchTerm = '%' . str_replace('%', '\\%', $conn->real_escape_string($searchTerm)) . '%';
+    
+    // Tangkap parameter tanggal
+    $tanggal = isset($_GET['tanggal']) ? trim($_GET['tanggal']) : null;
+    
+    // Validasi format tanggal
+    if ($tanggal && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $tanggal)) {
+        throw new Exception("Format tanggal tidak valid. Gunakan format YYYY-MM-DD");
+    }
 
-    // Query dengan prepared statement
+    // Query dasar
     $sql = "SELECT 
                 id,
                 nim,
@@ -33,17 +41,28 @@ try {
                 CONCAT('../assets/images/thumbs/thumb_', filename) AS thumbpath
             FROM mahasiswa 
             WHERE 
-                nim LIKE ? OR 
+                (nim LIKE ? OR 
                 nama LIKE ? OR 
-                jurusan LIKE ?
-            ORDER BY uploaded_at DESC";
+                jurusan LIKE ?)";
+    
+    // Tambahkan kondisi tanggal jika ada
+    if ($tanggal) {
+        $sql .= " AND DATE(uploaded_at) = ?";
+    }
+    
+    $sql .= " ORDER BY uploaded_at DESC";
 
     $stmt = $conn->prepare($sql);
     if (!$stmt) {
         throw new Exception("Error preparing query: " . $conn->error);
     }
 
-    $stmt->bind_param("sss", $searchTerm, $searchTerm, $searchTerm);
+    // Binding parameter berdasarkan ada/tidaknya tanggal
+    if ($tanggal) {
+        $stmt->bind_param("ssss", $searchTerm, $searchTerm, $searchTerm, $tanggal);
+    } else {
+        $stmt->bind_param("sss", $searchTerm, $searchTerm, $searchTerm);
+    }
     
     if (!$stmt->execute()) {
         throw new Exception("Error executing query: " . $stmt->error);
@@ -53,6 +72,7 @@ try {
     
     // Validasi hasil query
     if ($result->num_rows > 0) {
+        $response['data'] = [];
         while ($row = $result->fetch_assoc()) {
             // Validasi path file
             $row['filepath'] = filter_var($row['filepath'], FILTER_SANITIZE_URL);
@@ -65,6 +85,7 @@ try {
     } else {
         $response['status'] = 'success';
         $response['message'] = 'Data tidak ditemukan';
+        $response['data'] = [];
     }
 
 } catch (Exception $e) {

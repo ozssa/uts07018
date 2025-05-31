@@ -1,3 +1,6 @@
+Minggu Pertama: Github
 Minggu kedua: Situs dinamis
-Minggu ketiga: connect database
+Minggu ketiga: Validasi Keamanan
 Minggu ke empat: login
+Minggu Kelima: Upload Gambar
+Minggu Ke Enam: search live-unggah

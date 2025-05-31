@@ -123,4 +123,47 @@ body {
         width: 150px;
         height: 150px;
     }
+    
+    /* New styles for date input group */
+    .input-group {
+        flex-direction: column;
+    }
+    
+    .input-group > .form-control,
+    .input-group > .btn {
+        width: 100%;
+        margin-bottom: 5px;
+    }
+    
+    /* Ensure the reset button has proper spacing */
+    .input-group > .btn:last-child {
+        margin-bottom: 0;
+    }
+}
+
+/* Additional styling for date filter section */
+.search-container {
+    margin-bottom: 1rem;
+}
+
+.form-text {
+    margin-top: 0.25rem;
+    font-size: 0.875em;
+}
+
+/* Make sure date input is properly sized */
+#searchDate {
+    width: 100%;
+}
+
+/* Button in input group */
+.input-group .btn-outline-secondary {
+    border-left: none;
+}
+
+/* Reset button styling */
+#resetDate {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }

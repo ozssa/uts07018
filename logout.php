@@ -1,3 +1,4 @@
+<!-- C:\xampp\htdocs\uts07018\logout.php -->
 <?php
 session_start();
 
