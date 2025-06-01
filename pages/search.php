@@ -29,7 +29,7 @@ try {
         throw new Exception("Format tanggal tidak valid. Gunakan format YYYY-MM-DD");
     }
 
-    // Query dasar dengan format tanggal Indonesia dan path langsung dari database
+    // Query dasar dengan format tanggal Indonesia
     $sql = "SELECT 
                 id,
                 nim,
@@ -74,11 +74,17 @@ try {
     if ($result->num_rows > 0) {
         $response['data'] = [];
         while ($row = $result->fetch_assoc()) {
-            // Validasi path file
-            $row['filepath'] = filter_var($row['filepath'], FILTER_SANITIZE_URL);
-            $row['thumbpath'] = filter_var($row['thumbpath'], FILTER_SANITIZE_URL);
-            
-            $response['data'][] = $row;
+            // PERBAIKAN: Struktur data yang sesuai dengan pengecekan path
+            $response['data'][] = [
+                'id' => $row['id'],
+                'nim' => $row['nim'],
+                'nama' => $row['nama'],
+                'jurusan' => $row['jurusan'],
+                'filename' => $row['filename'],
+                'formatted_date' => $row['formatted_date'],
+                'filepath' => !empty($row['filepath']) ? $row['filepath'] : '',
+                'thumbpath' => !empty($row['thumbpath']) ? $row['thumbpath'] : ''
+            ];
         }
         $response['status'] = 'success';
         $response['message'] = 'Ditemukan ' . count($response['data']) . ' hasil';

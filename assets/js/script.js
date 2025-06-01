@@ -146,7 +146,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        // Fungsi untuk render tabel
+        // Fungsi untuk render tabel - PERBAIKAN
         const renderMahasiswaTable = (data) => {
             if (!data.data || data.data.length === 0) {
                 tableBody.innerHTML = `
@@ -164,18 +164,28 @@ document.addEventListener('DOMContentLoaded', function() {
             
             let html = '';
             data.data.forEach(row => {
+                // Gunakan properti yang benar
+                const thumbpath = row.thumbpath || '';
+                const filepath = row.filepath || '';
+                const formatted_date = row.formatted_date || row.tanggal_tampil || '-';
+                
                 html += `
                     <tr>
                         <td>
-                            <img src="${row.thumbpath}" 
-                                class="student-thumb" 
-                                alt="${row.nama}"
-                                data-full="${row.filepath}">
+                            ${thumbpath ? 
+                                `<img src="${thumbpath}" 
+                                    class="student-thumb" 
+                                    alt="${row.nama}"
+                                    data-full="${filepath}">` : 
+                                `<div class="bg-light d-flex align-items-center justify-content-center" 
+                                    style="width:50px; height:50px; border-radius:4px;">
+                                    <i class="fas fa-user text-muted"></i>
+                                </div>`}
                         </td>
                         <td>${row.nim}</td>
                         <td>${row.nama}</td>
                         <td>${row.jurusan}</td>
-                        <td>${row.formatted_date}</td>
+                        <td>${formatted_date}</td>
                         <td>
                             <div class="d-flex gap-2">
                                 <a href="editMhs.php?kode=${row.id}" 

@@ -229,13 +229,16 @@ require "../koneksi.php";
         dataCounter.textContent = 'Memuat data...';
         
         // Kirim permintaan AJAX ke server
-        fetch('ajaxLoadMahasiswa.php', {
-            method: 'POST',
+        fetch('search.php', {
+            method: 'GET',
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Type': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest'
             },
-            body: `keyword=${encodeURIComponent(keyword)}&date=${encodeURIComponent(date)}`
+            params: {
+                cari: keyword,
+                tanggal: date
+            }
         })
         .then(response => {
             console.log('Response status:', response.status);
@@ -245,21 +248,16 @@ require "../koneksi.php";
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             
-            // Ambil response sebagai text dulu untuk debugging
-            return response.text();
+            return response.json();
         })
-        .then(text => {
-            console.log('Raw response:', text.substring(0, 200));
+        .then(data => {
+            console.log('Response data:', data);
             
-            // Coba parse sebagai JSON
-            try {
-                const data = JSON.parse(text);
+            if (data.status === 'success') {
                 renderMahasiswaTable(data);
-                dataCounter.textContent = `Menampilkan ${data.length} data mahasiswa`;
-            } catch (jsonError) {
-                console.error('JSON Parse Error:', jsonError);
-                console.error('Response text:', text);
-                throw new Error('Invalid JSON response from server');
+                dataCounter.textContent = data.message;
+            } else {
+                throw new Error(data.message || 'Terjadi kesalahan server');
             }
         })
         .catch(error => {
@@ -282,9 +280,10 @@ require "../koneksi.php";
         });
     }
     
-    // Fungsi untuk merender tabel mahasiswa
-    function renderMahasiswaTable(data) {
+    // Fungsi untuk merender tabel mahasiswa - PERBAIKAN UTAMA
+    function renderMahasiswaTable(response) {
         const tableBody = document.getElementById('tableBody');
+        const data = response.data;
         
         if (!Array.isArray(data)) {
             console.error('Data is not an array:', data);
@@ -315,45 +314,39 @@ require "../koneksi.php";
         }
         
         let html = '';
-        data.forEach(mahasiswa => {
-            // Pastikan semua properti ada dengan fallback
-            const nim = mahasiswa.nim || '-';
-            const nama = mahasiswa.nama || '-';
-            const jurusan = mahasiswa.jurusan || '-';
-            const tanggalTampil = mahasiswa.formatted_date || '-'; // Gunakan formatted_date dari server
-            const id = mahasiswa.id || '';
-            const thumbpath = mahasiswa.thumbpath || '';
-            const filepath = mahasiswa.filepath || '';
+        data.forEach(row => {
+            // Gunakan thumbpath dan filepath dari response dengan fallback
+            const thumbpath = row.thumbpath || '';
+            const filepath = row.filepath || '';
+            const formatted_date = row.formatted_date || '-';
             
             html += `
                 <tr>
                     <td>
                         ${thumbpath ? 
-                            `<img src="${thumbpath}" alt="${nama}" 
-                                class="student-thumb" data-bs-toggle="modal" 
+                            `<img src="${thumbpath}" 
+                                class="student-thumb" 
+                                alt="${row.nama}"
+                                data-bs-toggle="modal" 
                                 data-bs-target="#imageModal" 
                                 data-img-src="${filepath}"
-                                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                            <div class="bg-light d-none align-items-center justify-content-center" 
-                                style="width:50px; height:50px; border-radius:4px;">
-                                <i class="fas fa-user text-muted"></i>
-                            </div>` : 
+                                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` : 
                             `<div class="bg-light d-flex align-items-center justify-content-center" 
                                 style="width:50px; height:50px; border-radius:4px;">
                                 <i class="fas fa-user text-muted"></i>
                             </div>`}
                     </td>
-                    <td>${nim}</td>
-                    <td>${nama}</td>
-                    <td>${jurusan}</td>
-                    <td>${tanggalTampil}</td>
+                    <td>${row.nim}</td>
+                    <td>${row.nama}</td>
+                    <td>${row.jurusan}</td>
+                    <td>${formatted_date}</td>
                     <td class="action-buttons">
-                        <a href="editMhs.php?id=${id}" class="btn btn-sm btn-warning">
+                        <a href="editMhs.php?id=${row.id}" class="btn btn-sm btn-warning">
                             <i class="fas fa-edit"></i>
                         </a>
                         <button class="btn btn-sm btn-danger delete-btn" 
-                            data-id="${id}" 
-                            data-nama="${nama}">
+                            data-id="${row.id}" 
+                            data-nama="${row.nama}">
                             <i class="fas fa-trash"></i>
                         </button>
                     </td>
