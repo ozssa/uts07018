@@ -137,8 +137,8 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $originalName = basename($_FILES["gambar"]["name"]);
             $fileExtension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
             $fileName = time() . '_' . uniqid() . '.' . $fileExtension;
-            $targetFile = $targetDir . $fileName;
-            $thumbFile = $thumbDir . "thumb_" . $fileName;
+            $targetFile = "assets/images/uploads/" . $fileName;
+            $thumbFile = "assets/images/thumbs/thumb_" . $fileName;
 
             // Validasi file
             $validTypes = ["image/jpeg", "image/png"];

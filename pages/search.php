@@ -29,16 +29,16 @@ try {
         throw new Exception("Format tanggal tidak valid. Gunakan format YYYY-MM-DD");
     }
 
-    // Query dasar
+    // Query dasar dengan format tanggal Indonesia dan path langsung dari database
     $sql = "SELECT 
                 id,
                 nim,
                 nama,
                 jurusan,
                 filename,
-                DATE_FORMAT(uploaded_at, '%d %b %Y %H:%i') AS formatted_date,
-                CONCAT('../assets/images/uploads/', filename) AS filepath,
-                CONCAT('../assets/images/thumbs/thumb_', filename) AS thumbpath
+                DATE_FORMAT(uploaded_at, '%d/%m/%Y %H:%i') AS formatted_date,
+                filepath,
+                thumbpath
             FROM mahasiswa 
             WHERE 
                 (nim LIKE ? OR 

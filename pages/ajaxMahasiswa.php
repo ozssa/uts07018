@@ -320,19 +320,19 @@ require "../koneksi.php";
             const nim = mahasiswa.nim || '-';
             const nama = mahasiswa.nama || '-';
             const jurusan = mahasiswa.jurusan || '-';
-            // Gunakan tanggal_tampil jika ada, jika tidak gunakan tanggal_upload
-            const tanggalTampil = mahasiswa.tanggal_tampil || mahasiswa.tanggal_upload || '-';
+            const tanggalTampil = mahasiswa.formatted_date || '-'; // Gunakan formatted_date dari server
             const id = mahasiswa.id || '';
-            const foto = mahasiswa.foto || '';
+            const thumbpath = mahasiswa.thumbpath || '';
+            const filepath = mahasiswa.filepath || '';
             
             html += `
                 <tr>
                     <td>
-                        ${foto ? 
-                            `<img src="../uploads/${foto}" alt="${nama}" 
+                        ${thumbpath ? 
+                            `<img src="${thumbpath}" alt="${nama}" 
                                 class="student-thumb" data-bs-toggle="modal" 
                                 data-bs-target="#imageModal" 
-                                data-img-src="../uploads/${foto}"
+                                data-img-src="${filepath}"
                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                             <div class="bg-light d-none align-items-center justify-content-center" 
                                 style="width:50px; height:50px; border-radius:4px;">
