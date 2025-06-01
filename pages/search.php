@@ -1,5 +1,5 @@
 <?php
-// Aktifkan output buffering
+// Aktifkan output buffering untuk menghindari masalah header
 ob_start();
 
 header('Content-Type: application/json; charset=utf-8');
@@ -17,14 +17,11 @@ try {
         throw new Exception("Koneksi database gagal: " . $conn->connect_error);
     }
 
-    // Sanitasi input pencarian
-    $searchTerm = isset($_GET['cari']) ? trim($_GET['cari']) : '';
-    $searchTerm = '%' . str_replace('%', '\\%', $conn->real_escape_string($searchTerm)) . '%';
-    
-    // Tangkap parameter tanggal
-    $tanggal = isset($_GET['tanggal']) ? trim($_GET['tanggal']) : null;
-    
-    // Validasi format tanggal
+    // Ambil parameter pencarian (GET/POST compatible)
+    $searchTerm = isset($_REQUEST['cari']) ? trim($_REQUEST['cari']) : '';
+    $tanggal = isset($_REQUEST['tanggal']) ? trim($_REQUEST['tanggal']) : '';
+
+    // Validasi format tanggal jika ada
     if ($tanggal && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $tanggal)) {
         throw new Exception("Format tanggal tidak valid. Gunakan format YYYY-MM-DD");
     }
@@ -40,41 +37,50 @@ try {
                 filepath,
                 thumbpath
             FROM mahasiswa 
-            WHERE 
-                (nim LIKE ? OR 
-                nama LIKE ? OR 
-                jurusan LIKE ?)";
-    
-    // Tambahkan kondisi tanggal jika ada
-    if ($tanggal) {
-        $sql .= " AND DATE(uploaded_at) = ?";
+            WHERE 1=1";
+
+    // Tambahkan kondisi pencarian jika ada keyword
+    $params = [];
+    $types = '';
+
+    if (!empty($searchTerm)) {
+        $sql .= " AND (nim LIKE ? OR nama LIKE ? OR jurusan LIKE ?)";
+        $searchParam = '%' . $searchTerm . '%';
+        $types .= 'sss';
+        $params = array_fill(0, 3, $searchParam);
     }
-    
+
+    // Tambahkan filter tanggal jika ada
+    if (!empty($tanggal)) {
+        $sql .= " AND DATE(uploaded_at) = ?";
+        $types .= 's';
+        $params[] = $tanggal;
+    }
+
     $sql .= " ORDER BY uploaded_at DESC";
 
+    // Persiapkan statement
     $stmt = $conn->prepare($sql);
     if (!$stmt) {
         throw new Exception("Error preparing query: " . $conn->error);
     }
 
-    // Binding parameter berdasarkan ada/tidaknya tanggal
-    if ($tanggal) {
-        $stmt->bind_param("ssss", $searchTerm, $searchTerm, $searchTerm, $tanggal);
-    } else {
-        $stmt->bind_param("sss", $searchTerm, $searchTerm, $searchTerm);
+    // Binding parameter dinamis
+    if (!empty($params)) {
+        $stmt->bind_param($types, ...$params);
     }
     
+    // Eksekusi query
     if (!$stmt->execute()) {
         throw new Exception("Error executing query: " . $stmt->error);
     }
 
     $result = $stmt->get_result();
     
-    // Validasi hasil query
+    // Proses hasil query
     if ($result->num_rows > 0) {
         $response['data'] = [];
         while ($row = $result->fetch_assoc()) {
-            // PERBAIKAN: Struktur data yang sesuai dengan pengecekan path
             $response['data'][] = [
                 'id' => $row['id'],
                 'nim' => $row['nim'],
@@ -82,8 +88,8 @@ try {
                 'jurusan' => $row['jurusan'],
                 'filename' => $row['filename'],
                 'formatted_date' => $row['formatted_date'],
-                'filepath' => !empty($row['filepath']) ? $row['filepath'] : '',
-                'thumbpath' => !empty($row['thumbpath']) ? $row['thumbpath'] : ''
+                'filepath' => $row['filepath'] ?? '',
+                'thumbpath' => $row['thumbpath'] ?? ''
             ];
         }
         $response['status'] = 'success';

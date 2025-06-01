@@ -1,5 +1,4 @@
 <?php
-// C:\xampp\htdocs\uts07018\pages\ajaxMahasiswa.php
 session_start();
 require "../koneksi.php";
 ?>
@@ -76,9 +75,31 @@ require "../koneksi.php";
                 font-size: 0.7rem;
             }
         }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .loading-overlay.hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
+    <div class="loading-overlay" id="globalLoading">
+        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;"></div>
+        <p class="mt-3">Memuat aplikasi...</p>
+    </div>
+    
     <?php require __DIR__ . "/../includes/header.php"; ?>
 
     <main class="main-content">
@@ -172,7 +193,7 @@ require "../koneksi.php";
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body text-center">
-                    <img src="" id="modalImage" class="img-fluid rounded">
+                    <img src="" id="modalImage" class="img-fluid rounded" style="max-height: 70vh;">
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
@@ -207,7 +228,7 @@ require "../koneksi.php";
     <script src="../assets/js/script.js"></script>
     
     <script>
-    // Fungsi untuk memuat data mahasiswa dengan error handling yang lebih baik
+    // Fungsi untuk memuat data mahasiswa dengan perbaikan
     function loadMahasiswaData(keyword = '', date = '') {
         const tableBody = document.getElementById('tableBody');
         const dataCounter = document.getElementById('dataCounter');
@@ -228,31 +249,23 @@ require "../koneksi.php";
         
         dataCounter.textContent = 'Memuat data...';
         
-        // Kirim permintaan AJAX ke server
+        // Buat form data untuk mengirim parameter
+        const formData = new FormData();
+        formData.append('cari', keyword);
+        formData.append('tanggal', date);
+        
+        // Kirim permintaan AJAX ke server menggunakan POST
         fetch('search.php', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            params: {
-                cari: keyword,
-                tanggal: date
-            }
+            method: 'POST',
+            body: formData
         })
         .then(response => {
-            console.log('Response status:', response.status);
-            
-            // Cek jika response berhasil (status 200-299)
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            
             return response.json();
         })
         .then(data => {
-            console.log('Response data:', data);
-            
             if (data.status === 'success') {
                 renderMahasiswaTable(data);
                 dataCounter.textContent = data.message;
@@ -280,7 +293,7 @@ require "../koneksi.php";
         });
     }
     
-    // Fungsi untuk merender tabel mahasiswa - PERBAIKAN UTAMA
+    // Fungsi untuk merender tabel mahasiswa
     function renderMahasiswaTable(response) {
         const tableBody = document.getElementById('tableBody');
         const data = response.data;
@@ -383,7 +396,13 @@ require "../koneksi.php";
         const searchInput = document.getElementById('liveSearch');
         const searchDate = document.getElementById('searchDate');
         const resetDate = document.getElementById('resetDate');
+        const globalLoading = document.getElementById('globalLoading');
         let searchTimer;
+        
+        // Sembunyikan global loading setelah halaman siap
+        setTimeout(() => {
+            globalLoading.classList.add('hidden');
+        }, 500);
         
         // Load data awal
         loadMahasiswaData();
